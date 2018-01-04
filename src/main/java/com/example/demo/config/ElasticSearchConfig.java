@@ -15,6 +15,11 @@
  ******************************************************************************/
 package com.example.demo.config;
 
+import org.apache.http.HttpHost;
+import org.apache.http.client.config.RequestConfig.Builder;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder.RequestConfigCallback;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
@@ -23,5 +28,20 @@ public class ElasticSearchConfig {
 	private final String host = "127.0.0.1";
 	private final int port = 9200;
 
+    @Bean(destroyMethod = "close")
+    public RestClient transportClient() {
+        return RestClient
+            .builder(new HttpHost(host, port))
+            .setRequestConfigCallback(new RequestConfigCallback() {
+                  @Override
+                  public Builder customizeRequestConfig(Builder builder) {
+                      return builder
+                          .setConnectTimeout(1000)
+                          .setSocketTimeout(5000);
+                  }
+            })
+            .setMaxRetryTimeoutMillis(60000)
+            .build();
+    }
 
 }
